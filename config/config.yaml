@@ -1,0 +1,22 @@
+# Python Code Convention Analyzer Configuration
+
+llm:
+  model_path: "./data/models/llama3-8b-q4_K_M.gguf"
+  n_ctx: 8000
+  n_batch: 512
+  n_threads: 8
+  temperature: 0.1
+  max_tokens: 1000
+
+analysis:
+  batch_size: 10
+  max_workers: 4
+  memory_threshold: 0.85
+  ignore_patterns:
+    - "__pycache__"
+    - ".git"
+    - ".pytest_cache"
+    - "venv"
+    - "env"
+    - ".venv"
+    - "node_modules"
