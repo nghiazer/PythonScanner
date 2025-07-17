@@ -1,5 +1,6 @@
 """
-Prompt templates for code convention analysis
+Working prompt templates based on debug results
+Simple format without chat templates
 """
 
 import logging
@@ -8,96 +9,53 @@ from typing import List, Dict, Optional
 logger = logging.getLogger(__name__)
 
 class PromptTemplates:
-    """Prompt templates for LLAMA 3 8B"""
+    """Working prompt templates - simple format"""
     
     def __init__(self):
-        self.max_code_length = 2000
+        self.max_code_length = 800  # Further reduced
         
     def create_extraction_prompt(self, code: str) -> str:
-        """Create convention extraction prompt"""
+        """Create simple extraction prompt that works"""
         if len(code) > self.max_code_length:
             code = code[:self.max_code_length] + "\n# ... (truncated)"
         
-        prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-
-You are an expert Python code analyzer. Extract specific coding conventions from the code.
-
-Return ONLY valid JSON array with conventions found.
-
-<|eot_id|><|start_header_id|>user<|end_header_id|>
-
-Analyze this Python code and extract conventions:
+        # Simple format without chat template
+        prompt = f"""Look at this Python code:
 
 ```python
 {code}
 ```
 
-Return JSON array of conventions:
-```json
+What coding conventions do you see? Return as JSON array:
+
 [
-  {{
-    "convention_type": "naming",
-    "pattern": "snake_case_functions",
-    "rule_description": "Functions use snake_case naming",
-    "example": "def calculate_average():",
-    "confidence": 0.95
-  }}
+  {{"convention_type": "naming", "pattern": "snake_case", "rule_description": "Functions use snake_case naming", "example": "def my_func():", "confidence": 0.9}},
+  {{"convention_type": "docstring", "pattern": "function_docs", "rule_description": "Functions have docstrings", "example": "\"\"\"Function description\"\"\"", "confidence": 0.8}}
 ]
-```
 
-<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-
-```json"""
+JSON:"""
         
         return prompt
     
     def create_checking_prompt(self, code: str, rules: List[Dict]) -> str:
-        """Create convention checking prompt"""
+        """Create simple checking prompt"""
         if len(code) > self.max_code_length:
             code = code[:self.max_code_length] + "\n# ... (truncated)"
         
-        # Limit rules
-        if len(rules) > 5:
-            rules = rules[:5]
+        rules_text = "\n".join([f"- {rule['rule_description']}" for rule in rules[:2]])
         
-        prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+        prompt = f"""Check this Python code against these rules:
 
-You are a Python code reviewer. Check code against conventions and identify violations.
+{rules_text}
 
-Return ONLY valid JSON format.
-
-<|eot_id|><|start_header_id|>user<|end_header_id|>
-
-Check this code against conventions:
-
-CODE:
+Code:
 ```python
 {code}
 ```
 
-RULES:
-{rules}
+Find violations and return JSON:
+{{"violations": [], "suggestions": [], "compliance_score": 0.8}}
 
-Return JSON with violations found:
-```json
-{{
-  "violations": [
-    {{
-      "rule_type": "naming",
-      "line": 5,
-      "message": "Function should use snake_case",
-      "severity": "medium",
-      "current": "badName",
-      "suggested": "bad_name"
-    }}
-  ],
-  "suggestions": ["Add type hints"],
-  "compliance_score": 0.75
-}}
-```
-
-<|eot_id|><|start_header_id|>assistant<|end_header_id|>
-
-```json"""
+JSON:"""
         
         return prompt
